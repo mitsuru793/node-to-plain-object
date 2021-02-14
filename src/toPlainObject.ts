@@ -1,11 +1,13 @@
 import is, { Primitive } from '@sindresorhus/is'
 
-type PlainObject = Record<string, unknown>
-type Plain = Primitive | Plain[] | PlainObject
+export type PlainObject = Record<string, unknown>
+export type Plain = Primitive | Plain[] | PlainObject
 
-type ObjectRecord = Record<string, unknown>
+// The return type of is.object method in @sindresorhus/is is object.
+// eslint-disable-next-line
+export type ObjectRecord = Record<string, unknown> | object
 
-type ToPlainObjectCallback = (
+export type ToPlainObjectCallback = (
   plain: PlainObject,
   key: string,
   val: unknown
@@ -20,12 +22,12 @@ const toPlainObjectCallback: ToPlainObjectCallback = (
   return plain
 }
 
-function arrayLikeToPlain(from: ArrayLike<unknown>): Plain[] {
+export function arrayLikeToPlain(from: ArrayLike<unknown>): Plain[] {
   // Set/Map is not array like
   return Array.from(from).map((v) => toPlainObject(v))
 }
 
-function objectToPlainObject(
+export function objectToPlainObject(
   from: ObjectRecord,
   callback: ToPlainObjectCallback = toPlainObjectCallback
 ): PlainObject {
@@ -34,7 +36,7 @@ function objectToPlainObject(
   }, {})
 }
 
-function mapToPlainObject(
+export function mapToPlainObject(
   from: Map<unknown, unknown>,
   callback: ToPlainObjectCallback = toPlainObjectCallback
 ): PlainObject {
@@ -48,11 +50,49 @@ function mapToPlainObject(
   return plain
 }
 
-function setToPlain(from: Set<unknown>): Plain[] {
+export function setToPlain(from: Set<unknown>): Plain[] {
   return Array.from(from.values()).map((v) => toPlainObject(v))
 }
 
-export function toPlainObject(from: unknown): Plain {
+export type NextChain = (from: unknown) => Plain
+export type Middleware = (from: unknown, next: NextChain) => Plain
+
+export interface Options {
+  middlewares?: Middleware[]
+}
+
+function runMiddleware(firstArg: unknown, middlewares: Middleware[]): unknown {
+  middlewares.push((from: unknown, next: NextChain) =>
+    next(_toPlainObject(from))
+  )
+
+  const run = (current: number, from: unknown): Plain => {
+    const middleware = middlewares[current]
+    if (!middleware) {
+      return from as Plain
+    }
+
+    const next = (from: unknown): Plain => {
+      return run(current + 1, from)
+    }
+    return middleware(from, next)
+  }
+  return run(0, firstArg)
+}
+
+export function toPlainObject(from: unknown, options: Options = {}): Plain {
+  let middlewares: Middleware[]
+  if (is.nullOrUndefined(options.middlewares)) {
+    middlewares = []
+  } else if (is.array(options.middlewares)) {
+    middlewares = options.middlewares
+  } else {
+    throw new Error('Middlewares must be Middleware[].')
+  }
+  return runMiddleware(from, middlewares) as Plain
+}
+
+function _toPlainObject(from: unknown): Plain {
   if (is.primitive(from)) {
     return from
   }

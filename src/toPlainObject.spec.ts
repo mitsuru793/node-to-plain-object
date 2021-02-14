@@ -1,4 +1,44 @@
-import { toPlainObject as to } from './toPlainObject'
+import {
+  Middleware,
+  NextChain,
+  objectToPlainObject,
+  PlainObject,
+  toPlainObject as to,
+  ToPlainObjectCallback,
+} from './toPlainObject'
+import is from '@sindresorhus/is'
+
+class MyPost {
+  title: string
+
+  constructor(title: string) {
+    this.title = title
+  }
+}
+
+class MyUserHasPost {
+  _id: number
+  name: string
+  comments: string[]
+  posts: MyPost[]
+
+  constructor(id: number, name: string, comments: string[], posts: MyPost[]) {
+    this._id = id
+    this.name = name
+    this.comments = comments
+    this.posts = posts
+  }
+}
+
+class MySimpleUser {
+  _id: number
+  name: string
+
+  constructor(id: number, name: string) {
+    this._id = id
+    this.name = name
+  }
+}
 
 describe('not change value', () => {
   test.each([
@@ -26,6 +66,21 @@ describe('not change value', () => {
       expect(result).toStrictEqual(input)
     }
   )
+
+  it('class', () => {
+    const user = new MyUserHasPost(
+      1,
+      'mike',
+      ['c1', 'c2'],
+      [new MyPost('p1'), new MyPost('p2')]
+    )
+    expect(to(user)).toStrictEqual({
+      _id: 1,
+      name: 'mike',
+      comments: ['c1', 'c2'],
+      posts: [{ title: 'p1' }, { title: 'p2' }],
+    })
+  })
 })
 
 describe('serializing builtin object', () => {
@@ -54,39 +109,47 @@ describe('serializing builtin object', () => {
   })
 })
 
-class MyPost {
-  title: string
+describe('callback', () => {
+  it('objectToPlainObject', () => {
+    const user = new MySimpleUser(1, 'mike')
 
-  constructor(title: string) {
-    this.title = title
-  }
-}
+    const callback: ToPlainObjectCallback = (
+      plain: PlainObject,
+      key: string,
+      val: unknown
+    ) => {
+      if (key.match(/^_/)) {
+        return plain
+      }
+      plain[key] = val
+      return plain
+    }
 
-class MyUser {
-  _id: number
-  name: string
-  comments: string[]
-  posts: MyPost[]
+    const filterUnderscoreProperty: Middleware = (
+      value: unknown,
+      next: NextChain
+    ) => {
+      if (!is.object(value)) {
+        return next(value)
+      }
+      return objectToPlainObject(value, callback)
+    }
 
-  constructor(id: number, name: string, comments: string[], posts: MyPost[]) {
-    this._id = id
-    this.name = name
-    this.comments = comments
-    this.posts = posts
-  }
-}
+    const plain = to(user, { middlewares: [filterUnderscoreProperty] })
+    expect(plain).toStrictEqual({ name: 'mike' })
+  })
 
-it('class', () => {
-  const user = new MyUser(
-    1,
-    'mike',
-    ['c1', 'c2'],
-    [new MyPost('p1'), new MyPost('p2')]
-  )
-  expect(to(user)).toStrictEqual({
-    _id: 1,
-    name: 'mike',
-    comments: ['c1', 'c2'],
-    posts: [{ title: 'p1' }, { title: 'p2' }],
+  it('middleware order', () => {
+    const middleware1: Middleware = (value: unknown, next: NextChain) => {
+      value += '1'
+      return next(value)
+    }
+    const middleware2: Middleware = (value: unknown, next: NextChain) => {
+      value += '2'
+      return next(value)
+    }
+
+    const plain = to('0', { middlewares: [middleware1, middleware2] })
+    expect(plain).toStrictEqual('012')
   })
 })
