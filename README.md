@@ -92,7 +92,7 @@ I provide some middlewares.
 
 #### `filterProperty: (regex: RegExp) => Middleware`
 
-If key matched regex, remove key and value from returned plain object.
+If property matches regex, remove property and value of it from returned plain object.
 
 #### `expandProperty: (regex: RegExp) => Middleware`
 
