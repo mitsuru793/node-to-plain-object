@@ -25,6 +25,7 @@ export const filterProperty = (regex: RegExp): Middleware => {
     if (!is.object(value)) {
       return next(value)
     }
-    return objectToPlainObject(value, callback)
+    const plain = objectToPlainObject(value, callback)
+    return next(plain)
   }
 }
