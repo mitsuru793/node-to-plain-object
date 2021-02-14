@@ -93,3 +93,20 @@ I provide some middlewares.
 #### `filterProperty: (regex: RegExp) => Middleware`
 
 If key matched regex, remove key and value from returned plain object.
+
+#### `expandProperty: (regex: RegExp) => Middleware`
+
+If property matches regex, move values of the property up to one.
+
+```typescript
+const user = {
+  props: {
+    name: 'mike',
+    age: 20,
+  }
+}
+const plain = to(user, {
+ middlewares: [expandProperty(/^props$/)],
+})
+expect(plain).toStrictEqual({ name: 'mike', age: 20 })
+```
