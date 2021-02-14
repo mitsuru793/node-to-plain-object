@@ -85,3 +85,11 @@ const plain = to('0', {
 })
 expect(plain).toStrictEqual('012')
 ```
+
+### Defined Middleware 
+
+I provide some middlewares.
+
+#### `filterProperty: (regex: RegExp) => Middleware`
+
+If key matched regex, remove key and value from returned plain object.
