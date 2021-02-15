@@ -15,6 +15,7 @@ export const expandProperty = (regex: RegExp): Middleware => {
     val: unknown
   ) => {
     if (!regex.exec(key) || !is.object(val)) {
+      plain[key] = val
       return plain
     }
 
