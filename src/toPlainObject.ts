@@ -25,6 +25,10 @@ export function arrayLikeToPlain(from: ArrayLike<unknown>): Plain[] {
 function objectToPlainObject(from: PlainObject, options: Options): PlainObject {
   return Object.entries(from).reduce(
     (plain: PlainObject, [key, val]: [string, unknown]) => {
+      if (options.filterProperty && key.match(options.filterProperty)) {
+        return plain
+      }
+
       const got = toPlainObject(val, options)
       if (!isRecord(got)) {
         plain[key] = got
@@ -53,6 +57,7 @@ export type Middleware = (from: unknown, next: NextChain) => Plain
 export interface Options {
   middlewares?: Middleware[]
   expandProperty?: string
+  filterProperty?: string
 }
 
 function runMiddleware(

@@ -116,6 +116,17 @@ describe('expand property', () => {
   })
 })
 
+describe('filter property', () => {
+  it('match exactly', () => {
+    const user = {
+      _id: 1,
+      name: 'mike',
+    }
+    const ops = { filterProperty: '_id' }
+    expect(to(user, ops)).toStrictEqual({ name: 'mike' })
+  })
+})
+
 describe('callback', () => {
   it('middleware order', () => {
     const middleware1: Middleware = (value: unknown, next: NextChain) => {
