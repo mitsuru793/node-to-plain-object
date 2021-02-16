@@ -11,15 +11,10 @@ export type ToPlainObjectCallback = (
   plain: PlainObject,
   key: string,
   val: unknown
-) => PlainObject
+) => Plain
 
-const toPlainObjectCallback: ToPlainObjectCallback = (
-  plain: PlainObject,
-  key: string,
-  val: unknown
-) => {
-  plain[key] = toPlainObject(val)
-  return plain
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return is.object(value)
 }
 
 export function arrayLikeToPlain(from: ArrayLike<unknown>): Plain[] {
@@ -27,27 +22,25 @@ export function arrayLikeToPlain(from: ArrayLike<unknown>): Plain[] {
   return Array.from(from).map((v) => toPlainObject(v))
 }
 
-export function objectToPlainObject(
-  from: ObjectRecord,
-  callback: ToPlainObjectCallback = toPlainObjectCallback
-): PlainObject {
-  return Object.entries(from).reduce((plain: PlainObject, [key, val]) => {
-    return callback(plain, key, val)
-  }, {})
-}
+function objectToPlainObject(from: PlainObject, options: Options): PlainObject {
+  return Object.entries(from).reduce(
+    (plain: PlainObject, [key, val]: [string, unknown]) => {
+      const got = toPlainObject(val, options)
+      if (!isRecord(got)) {
+        plain[key] = got
+        return plain
+      }
 
-export function mapToPlainObject(
-  from: Map<unknown, unknown>,
-  callback: ToPlainObjectCallback = toPlainObjectCallback
-): PlainObject {
-  let plain: PlainObject = {}
-  from.forEach((val, key) => {
-    if (!is.string(key)) {
-      throw new Error(`Map key must be string, but ${key}`)
-    }
-    plain = callback(plain, key, val)
-  })
-  return plain
+      if (options.expandProperty && key.match(options.expandProperty)) {
+        plain = { ...plain, ...got }
+        return plain
+      }
+
+      plain[key] = got
+      return plain
+    },
+    {}
+  )
 }
 
 export function setToPlain(from: Set<unknown>): Plain[] {
@@ -59,11 +52,16 @@ export type Middleware = (from: unknown, next: NextChain) => Plain
 
 export interface Options {
   middlewares?: Middleware[]
+  expandProperty?: string
 }
 
-function runMiddleware(firstArg: unknown, middlewares: Middleware[]): unknown {
+function runMiddleware(
+  firstArg: unknown,
+  middlewares: Middleware[],
+  options: Options
+): unknown {
   middlewares.push((from: unknown, next: NextChain) =>
-    next(_toPlainObject(from))
+    next(_toPlainObject(from, options))
   )
 
   const run = (current: number, from: unknown): Plain => {
@@ -89,10 +87,10 @@ export function toPlainObject(from: unknown, options: Options = {}): Plain {
   } else {
     throw new Error('Middlewares must be Middleware[].')
   }
-  return runMiddleware(from, middlewares) as Plain
+  return runMiddleware(from, middlewares, options) as Plain
 }
 
-function _toPlainObject(from: unknown): Plain {
+function _toPlainObject(from: unknown, options: Options): Plain {
   if (is.primitive(from)) {
     return from
   }
@@ -103,7 +101,7 @@ function _toPlainObject(from: unknown): Plain {
   }
 
   if (is.map(from)) {
-    return mapToPlainObject(from)
+    return objectToPlainObject(Object.fromEntries(from), options)
   }
 
   if (is.set(from)) {
@@ -111,7 +109,7 @@ function _toPlainObject(from: unknown): Plain {
   }
 
   if (is.object(from)) {
-    return objectToPlainObject(from as ObjectRecord)
+    return objectToPlainObject(from as PlainObject, options)
   }
 
   throw new Error(`Unknown type. Add if statement. typeof: ${typeof from}`)

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "dist",
     // Node.js 10
-    "target": "es2018",
+    "target": "es2019",
     "module": "commonjs",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,

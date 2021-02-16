@@ -1,12 +1,4 @@
-import {
-  Middleware,
-  NextChain,
-  objectToPlainObject,
-  PlainObject,
-  toPlainObject as to,
-  ToPlainObjectCallback,
-} from './toPlainObject'
-import is from '@sindresorhus/is'
+import { Middleware, NextChain, toPlainObject as to } from './toPlainObject'
 
 class MyPost {
   title: string
@@ -27,16 +19,6 @@ class MyUserHasPost {
     this.name = name
     this.comments = comments
     this.posts = posts
-  }
-}
-
-class MySimpleUser {
-  _id: number
-  name: string
-
-  constructor(id: number, name: string) {
-    this._id = id
-    this.name = name
   }
 }
 
@@ -109,36 +91,32 @@ describe('serializing builtin object', () => {
   })
 })
 
-describe('callback', () => {
-  it('objectToPlainObject', () => {
-    const user = new MySimpleUser(1, 'mike')
-
-    const callback: ToPlainObjectCallback = (
-      plain: PlainObject,
-      key: string,
-      val: unknown
-    ) => {
-      if (key.match(/^_/)) {
-        return plain
-      }
-      plain[key] = val
-      return plain
+describe('expand property', () => {
+  it('expand only matched', () => {
+    const name = {
+      id: 1,
+      props: {
+        name: 'mike',
+      },
     }
-
-    const filterUnderscoreProperty: Middleware = (
-      value: unknown,
-      next: NextChain
-    ) => {
-      if (!is.object(value)) {
-        return next(value)
-      }
-      return objectToPlainObject(value, callback)
-    }
-
-    const plain = to(user, { middlewares: [filterUnderscoreProperty] })
-    expect(plain).toStrictEqual({ name: 'mike' })
+    const ops = { expandProperty: 'props' }
+    expect(to(name, ops)).toStrictEqual({ id: 1, name: 'mike' })
   })
 
+  it('expand deeply', () => {
+    const name = {
+      props: {
+        props: {
+          name: 'mike',
+        },
+      },
+    }
+    const ops = { expandProperty: 'props' }
+    expect(to(name, ops)).toStrictEqual({ name: 'mike' })
+  })
+})
+
+describe('callback', () => {
   it('middleware order', () => {
     const middleware1: Middleware = (value: unknown, next: NextChain) => {
       value += '1'
