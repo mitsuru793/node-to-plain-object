@@ -117,12 +117,22 @@ describe('expand property', () => {
 })
 
 describe('filter property', () => {
-  it('match exactly', () => {
+  it('match string exactly', () => {
     const user = {
       _id: 1,
       name: 'mike',
     }
     const ops = { filterProperty: '_id' }
+    expect(to(user, ops)).toStrictEqual({ name: 'mike' })
+  })
+
+  it('match regexp', () => {
+    const user = {
+      _id: 1,
+      _age: 19,
+      name: 'mike',
+    }
+    const ops = { filterProperty: /^_.+/ }
     expect(to(user, ops)).toStrictEqual({ name: 'mike' })
   })
 })
