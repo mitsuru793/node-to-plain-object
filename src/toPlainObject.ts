@@ -3,16 +3,6 @@ import is, { Primitive } from '@sindresorhus/is'
 export type PlainObject = Record<string, unknown>
 export type Plain = Primitive | Plain[] | PlainObject
 
-// The return type of is.object method in @sindresorhus/is is object.
-// eslint-disable-next-line
-export type ObjectRecord = Record<string, unknown> | object
-
-export type ToPlainObjectCallback = (
-  plain: PlainObject,
-  key: string,
-  val: unknown
-) => Plain
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return is.object(value)
 }
