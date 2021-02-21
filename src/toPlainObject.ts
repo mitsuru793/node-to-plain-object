@@ -78,7 +78,7 @@ export function toPlainObject(from: unknown, options: Options = {}): Plain {
   if (is.nullOrUndefined(options.middlewares)) {
     middlewares = []
   } else if (is.array(options.middlewares)) {
-    middlewares = options.middlewares
+    middlewares = options.middlewares.slice()
   } else {
     throw new Error('Middlewares must be Middleware[].')
   }

@@ -151,4 +151,10 @@ describe('callback', () => {
     const plain = to('0', { middlewares: [middleware1, middleware2] })
     expect(plain).toStrictEqual('012')
   })
+
+  it('middlewares are empty', () => {
+    // check that middlewares are clone when it's passed deeply
+    const plain = to({ name: 'mike' }, { middlewares: [] })
+    expect(plain).toStrictEqual({ name: 'mike' })
+  })
 })
