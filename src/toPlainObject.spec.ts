@@ -114,6 +114,22 @@ describe('expand property', () => {
     const ops = { expandProperty: 'props' }
     expect(to(name, ops)).toStrictEqual({ name: 'mike' })
   })
+
+  it('expand in array', () => {
+    const user = {
+      posts: [
+        {
+          props: {
+            title: 'hello',
+          },
+        },
+      ],
+    }
+    const ops = { expandProperty: 'props' }
+    expect(to(user, ops)).toStrictEqual({
+      posts: [{ title: 'hello' }],
+    })
+  })
 })
 
 describe('filter property', () => {

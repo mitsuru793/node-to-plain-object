@@ -7,11 +7,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return is.object(value)
 }
 
-export function arrayLikeToPlain(from: ArrayLike<unknown>): Plain[] {
-  // Set/Map is not array like
-  return Array.from(from).map((v) => toPlainObject(v))
-}
-
 function objectToPlainObject(from: PlainObject, options: Options): PlainObject {
   return Object.entries(from).reduce(
     (plain: PlainObject, [key, val]: [string, unknown]) => {
@@ -35,10 +30,6 @@ function objectToPlainObject(from: PlainObject, options: Options): PlainObject {
     },
     {}
   )
-}
-
-export function setToPlain(from: Set<unknown>): Plain[] {
-  return Array.from(from.values()).map((v) => toPlainObject(v))
 }
 
 export type NextChain = (from: unknown) => Plain
@@ -92,7 +83,7 @@ function _toPlainObject(from: unknown, options: Options): Plain {
 
   if (is.arrayLike(from)) {
     // Set/Map is not array like
-    return arrayLikeToPlain(from)
+    return Array.from(from).map((v) => toPlainObject(v, options))
   }
 
   if (is.map(from)) {
@@ -100,7 +91,7 @@ function _toPlainObject(from: unknown, options: Options): Plain {
   }
 
   if (is.set(from)) {
-    return setToPlain(from)
+    return Array.from(from.values()).map((v) => toPlainObject(v, options))
   }
 
   if (is.object(from)) {
