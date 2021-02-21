@@ -2,6 +2,7 @@
   "name": "@mitsuru793/to-plain-object",
   "version": "0.0.1",
   "scripts": {
+    "deploy": "yarn lint && yarn test && yarn build",
     "build": "del dist && tsc",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "yarn run lint --fix",
