@@ -47,7 +47,7 @@ export type Middleware = (from: unknown, next: NextChain) => Plain
 export interface Options {
   middlewares?: Middleware[]
   expandProperty?: string
-  filterProperty?: string|RegExp
+  filterProperty?: string | RegExp
 }
 
 function runMiddleware(
