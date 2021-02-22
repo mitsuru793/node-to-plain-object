@@ -39,6 +39,7 @@ export interface Options {
   middlewares?: Middleware[]
   expandProperty?: string
   filterProperty?: string | RegExp
+  formatDate?: (date: Date) => string
 }
 
 function runMiddleware(
@@ -95,7 +96,10 @@ function _toPlainObject(from: unknown, options: Options): Plain {
   }
 
   if (is.date(from)) {
-    return from.toISOString()
+    if (!options.formatDate) {
+      return from.toISOString()
+    }
+    return options.formatDate(from)
   }
 
   if (is.object(from)) {

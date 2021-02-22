@@ -90,9 +90,20 @@ describe('serializing builtin object', () => {
     expect(to(set)).toStrictEqual([1, 'v'])
   })
 
-  it('Date', () => {
-    const date = new Date('2020/12/20')
-    expect(to(date)).toStrictEqual('2020-12-19T15:00:00.000Z')
+  describe('Date', () => {
+    it('default', () => {
+      const date = new Date('2020/12/20')
+      expect(to(date)).toStrictEqual('2020-12-19T15:00:00.000Z')
+    })
+
+    it('change format with options', () => {
+      const date = new Date('2020/12/20')
+      const options = {
+        formatDate: (d: Date) =>
+          `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`,
+      }
+      expect(to(date, options)).toStrictEqual('2020-12-20')
+    })
   })
 })
 
