@@ -94,6 +94,10 @@ function _toPlainObject(from: unknown, options: Options): Plain {
     return Array.from(from.values()).map((v) => toPlainObject(v, options))
   }
 
+  if (is.date(from)) {
+    return from.toISOString()
+  }
+
   if (is.object(from)) {
     return objectToPlainObject(from as PlainObject, options)
   }

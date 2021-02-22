@@ -89,6 +89,11 @@ describe('serializing builtin object', () => {
     set = new Set([1, 'v', 1])
     expect(to(set)).toStrictEqual([1, 'v'])
   })
+
+  it('Date', () => {
+    const date = new Date('2020/12/20')
+    expect(to(date)).toStrictEqual('2020-12-19T15:00:00.000Z')
+  })
 })
 
 describe('expand property', () => {
